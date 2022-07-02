@@ -2,6 +2,7 @@ import pygame
 from tiles import Tile
 from settings import tile_size, screen_width
 from player import Player
+from particles import ParticleEffects
 
 
 class Level:
@@ -12,6 +13,14 @@ class Level:
         self.display_surface = surface
         self.setup_level(level_data)
         self.world_shift = 0
+        self.current_x = 0
+        
+        # creating its own group-dust
+        self.jump_sprites = pygame.sprite.GroupSingle() 
+        
+    def create_jump_particles(self,pos):
+        jump_particle_sprite = ParticleEffects(pos,'jump')
+        self.jump_sprites.add(jump_particle_sprite)
     
     def setup_level(self, layout):
         self.tiles = pygame.sprite.Group()
@@ -26,7 +35,7 @@ class Level:
                     tile = Tile((x,y),tile_size)
                     self.tiles.add(tile)
                 if cell == 'P':
-                    player_sprite = Player((x,y))
+                    player_sprite = Player((x,y),self.display_surface, self.create_jump_particles)
                     self.player.add(player_sprite)
                     
     def scroll_x(self):
@@ -57,8 +66,21 @@ class Level:
             if sprite.rect.colliderect(player.rect):
                 if player.direction.x < 0:
                     player.rect.left = sprite.rect.right
+                    player.on_left = True
+                    self.current_x = player.rect.right
                 elif player.direction.x > 0:
                     player.rect.right = sprite.rect.left
+                    player.on_right = True
+                    self.current_x = player.rect.left
+                    
+        '''checking if the player is still making contact with the obstacle
+           or has moved from that point '''
+        if player.on_left and (player.rect.left < self.current_x or  player.direction.x >= 0):
+            player.on_left = False
+        elif player.on_right and (player.rect.right > self.current_x or player.direction.x <= 0 ):
+            player.on_right = False
+            
+           
                     
     def vertical_movement_collision(self):
         player = self.player.sprite
@@ -81,6 +103,11 @@ class Level:
             player.on_ceiling = False 
                     
     def run(self):
+        #particles effects
+        self.jump_sprites.update(self.world_shift)
+        self.jump_sprites.draw(self.display_surface)
+        
+        
         #level tiles
         self.tiles.update(self.world_shift)
         self.tiles.draw(self.display_surface)
