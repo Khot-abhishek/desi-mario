@@ -112,8 +112,9 @@ class Player(pygame.sprite.Sprite):
                 pos = self.rect.bottomleft - pygame.math.Vector2(6,10) 
                 self.display_surface.blit(dust_particles,pos)  
             else:
-                pos = self.rect.bottomright - pygame.math.Vector2(6,10) 
-                self.display_surface.blit(dust_particles,pos)
+                pos = self.rect.bottomright - pygame.math.Vector2(6,10)
+                flipped_particle = pygame.transform.flip(dust_particles,True,False) 
+                self.display_surface.blit(flipped_particle,pos)
     
     def apply_gravity(self):
         self.direction.y += self.gravity

@@ -16,11 +16,33 @@ class Level:
         self.current_x = 0
         
         # creating its own group-dust
-        self.jump_sprites = pygame.sprite.GroupSingle() 
+        self.dust_sprites = pygame.sprite.GroupSingle() 
+        self.player_on_ground = False
+       
+    def get_player_on_ground(self):
+        if self.player.sprite.on_ground:
+            self.player_on_ground = True
+        else:
+            self.player_on_ground = False
+            
+    def create_landing_dust(self):
+        if not self.player_on_ground and self.player.sprite.on_ground and not self.dust_sprites.sprites():
+            if self.player.sprite.facing_right:
+                offset = pygame.math.Vector2(10,15)
+            else:
+                offset = pygame.math.Vector2(-10,15)
+            fall_dust_particle = ParticleEffects(self.player.sprite.rect.midbottom - offset,'land')
+            self.dust_sprites.add(fall_dust_particle)
+                
         
     def create_jump_particles(self,pos):
+        #offseting particle location based on his facing
+        if self.player.sprite.facing_right:
+            pos -=  pygame.math.Vector2(10,5)
+        else:
+            pos += pygame.math.Vector2(10,-5)
         jump_particle_sprite = ParticleEffects(pos,'jump')
-        self.jump_sprites.add(jump_particle_sprite)
+        self.dust_sprites.add(jump_particle_sprite)
     
     def setup_level(self, layout):
         self.tiles = pygame.sprite.Group()
@@ -104,8 +126,8 @@ class Level:
                     
     def run(self):
         #particles effects
-        self.jump_sprites.update(self.world_shift)
-        self.jump_sprites.draw(self.display_surface)
+        self.dust_sprites.update(self.world_shift)
+        self.dust_sprites.draw(self.display_surface)
         
         
         #level tiles
@@ -116,5 +138,7 @@ class Level:
         #player
         self.player.update()
         self.horizontal_movement_collision()
+        self.get_player_on_ground()
         self.vertical_movement_collision()
+        self.create_landing_dust()
         self.player.draw(self.display_surface)
