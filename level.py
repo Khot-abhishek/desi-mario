@@ -66,12 +66,20 @@ class Level:
         
         for sprite in self.tiles.sprites():
             if sprite.rect.colliderect(player.rect):
-                if player.direction.y > 0:
+                if player.direction.y > 0:      # colliding with the ground
                     player.rect.bottom = sprite.rect.top
-                    player.direction.y = 0 
-                elif player.direction.y < 0:
+                    player.direction.y = 0
+                    player.on_ground = True 
+                elif player.direction.y < 0:    # colliding with the ceiling
                     player.rect.top = sprite.rect.bottom
                     player.direction.y = 0
+                    player.on_ceiling = True
+        # checking if player is realy on ground / ceiling or in between the transition (jump-fall) 
+        if player.on_ground and player.direction.y < 0 or player.direction.y > 1:    
+            player.on_ground = False                        
+        elif player.on_ceiling and player.direction.y > 0:
+            player.on_ceiling = False 
+                    
     def run(self):
         #level tiles
         self.tiles.update(self.world_shift)

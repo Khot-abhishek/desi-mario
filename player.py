@@ -21,6 +21,10 @@ class Player(pygame.sprite.Sprite):
         #player Status - idle/running/jumping....
         self.status = 'idle'
         self.facing_right = True
+        self.on_ground = False
+        self.on_ceiling = False
+        self.on_left = False
+        self.on_right = False
 
     def import_character_assets(self):
         character_path = 'graphics/character/'
@@ -54,21 +58,32 @@ class Player(pygame.sprite.Sprite):
         else:
             self.direction.x = 0
 
-        if keys[pygame.K_SPACE]:
+        if keys[pygame.K_SPACE] and self.on_ground:
             self.jump()
     
     def animate(self):
         animations = self.animations[self.status]
         
+        #looping over individual animation frames
         self.frame_index += self.animation_speed
         if self.frame_index >= len(animations):
             self.frame_index = 0
+            
         image =  animations[int(self.frame_index)]
         if self.facing_right:
             self.image = image
         else:
             flipped_image = pygame.transform.flip(image,True,False)
             self.image = flipped_image
+
+        ''' creating a new rectacnge for each frame so as to adjust the
+        varing image dimention for the animation frames '''
+        if self.on_ground:
+            self.rect = self.image.get_rect(midbottom = self.rect.midbottom)
+        elif self.on_ceiling:
+            self.rect = self.image.get_rect(midtop = self.rect.midtop)
+        else:
+            self.rect = self.image.get_rect(center = self.rect.center)
     
     def apply_gravity(self):
         self.direction.y += self.gravity
